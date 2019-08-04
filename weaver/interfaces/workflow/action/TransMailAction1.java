@@ -4,6 +4,7 @@ import weaver.conn.RecordSet;
 import weaver.email.MailCustom;
 import weaver.general.BaseBean;
 import weaver.general.Util;
+import weaver.hrm.job.JobTitlesComInfo;
 import weaver.hrm.resource.ResourceComInfo;
 import weaver.soa.workflow.request.RequestInfo;
 
@@ -13,16 +14,6 @@ import java.util.Map;
 public class TransMailAction1 extends BaseBean implements Action {
     private RecordSet rs=new RecordSet();
     private RecordSet rs1=new RecordSet();
-
-    private String mailType="";
-
-    public String getMailType() {
-        return mailType;
-    }
-
-    public void setMailType(String mailType) {
-        this.mailType = mailType;
-    }
     @Override
     public String execute(RequestInfo requestInfo) {
         try{
@@ -32,37 +23,52 @@ public class TransMailAction1 extends BaseBean implements Action {
             String sql="select  * from "+tableName+" where requestid='"+requestId+"'";
             rs.executeQuery(sql);
             rs.next();
-            String effectivedate=rs.getString("effectivedate");
-            String userid=rs.getString("employeename");
-            String employeeid=new ResourceComInfo().getWorkcode(userid);
-            String employname=new ResourceComInfo().getLastname(userid);
-            String newcostcenter=rs.getString("newcostcenter");
-            rs1.executeQuery("select field11 from cus_fielddata where id='"+userid+"' and scopeid=3 and scope='HrmCustomFieldByInfoType'");
-            rs1.next();
-            String oldcostcenter=rs1.getString(1);
-            String homelinemanager=new ResourceComInfo().getLastname(rs.getString("homelinemanager"));
-            String newlinemanager=new ResourceComInfo().getLastname(rs.getString("newlinemanager"));
+            Map<String,String> params=new HashMap<String,String>();
+            String gsfx=rs.getString("gsfx");
+            String newtitle=rs.getString("newtitle");
+            String firstname=rs.getString("mpy");
+            String familyName=rs.getString("xpy");
+            String englishname=rs.getString("employeename");
+            String onboardDay=rs.getString("effectivedate");
+            String location =rs.getString("xbgdd");
+            String lineManager=rs.getString("newlinemanager");
+            String armcbzx=rs.getString("armcbzx");
+            String birthday=rs.getString("birthday");
+            String armid=rs.getString("armid");
+            String lastday=rs.getString("lastday");
+            String firstday=rs.getString("firstday");
             String kgsfxcbgsfsdyxdz=rs.getString("kgsfxcbgsfsdyxdz");
             String kgsfxgscbfsdyxdz=rs.getString("kgsfxgscbfsdyxdz");
-            String gsfx=rs.getString("gsfx");
-            Map<String,String> params=new HashMap<String,String>();
-            params.put("effectivedate",effectivedate);
-            params.put("employeeid",employeeid);
-            params.put("employname",employname);
-            params.put("newcostcenter",newcostcenter);
-            params.put("oldcostcenter",oldcostcenter);
-            params.put("homelinemanager",homelinemanager);
-            params.put("newlinemanager",newlinemanager);
-            String[] to=null;
-            if(gsfx.equals("0") || gsfx.equals("1") || gsfx.equals("2")){
-                to=kgsfxcbgsfsdyxdz.split(",");
-            }else{
-                to=kgsfxgscbfsdyxdz.split(",");
+            if(gsfx.equals("0")){//hire
+                params.put("title",new JobTitlesComInfo().getJobTitlesname(newtitle));
+                params.put("firstName",firstname);
+                params.put("familyName",familyName);
+                params.put("ename",new ResourceComInfo().getLastname(englishname));
+                params.put("gender",new ResourceComInfo().getSexs(englishname).equals("0")?"Male":"Female");
+                params.put("onboardDay",onboardDay);
+                params.put("location",location);
+                params.put("lineManager",lineManager);
+                params.put("mobile",new ResourceComInfo().getMobile(englishname));
+                params.put("costCode",armcbzx);
+                params.put("birthday",birthday);
+                sql="select field6 from cus_fielddata where scope='HrmCustomFieldByInfoType' and scopeid='1' and id='"+englishname+"'";
+                rs1.executeQuery(sql);
+                rs1.next();
+                String nationality=rs1.getString(1);
+                params.put("nationality",nationality);
+                String[] to=kgsfxcbgsfsdyxdz.split(",");
+                String[] cc={};
+                mc.sendMail(to,cc,"JVGS New Hire","template2",params);
+            }else if(gsfx.equals("1")){//fire
+                params.put("name",new ResourceComInfo().getLastname(englishname));
+                params.put("sfz",armid);
+                params.put("lastworkingdate",lastday);
+                params.put("terminationdate",firstday);
+                String[] to=kgsfxgscbfsdyxdz.split(",");
+                String[] cc={};
+                mc.sendMail(to,cc,"JVGS New Hire","template6",params);
             }
-            String[] cc={};
-            writeLog(kgsfxcbgsfsdyxdz);
             writeLog(params);
-            mc.sendMail(to,cc,"Transfer Notice",mailType,params);
         }catch (Exception e){
             e.printStackTrace();
             return FAILURE_AND_CONTINUE;
