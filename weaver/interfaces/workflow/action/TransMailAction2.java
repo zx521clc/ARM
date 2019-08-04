@@ -16,6 +16,7 @@ public class TransMailAction2 extends BaseBean implements Action {
     private RecordSet rs1=new RecordSet();
     @Override
     public String execute(RequestInfo requestInfo) {
+        writeLog("==========start===========");
         try{
             MailCustom mc=new MailCustom(requestInfo);
             String requestId=requestInfo.getRequestid();
