@@ -11,7 +11,7 @@ import weaver.soa.workflow.request.RequestInfo;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TransMailAction1 extends BaseBean implements Action {
+public class TransMailAction2 extends BaseBean implements Action {
     private RecordSet rs=new RecordSet();
     private RecordSet rs1=new RecordSet();
     @Override
